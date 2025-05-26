@@ -25,10 +25,10 @@ const UserSchema = new mongoose.Schema({
     type: String,
   },
   batchYear: {
-    type: Number,
+    type: String,
     required: [true, 'Please add your batch year'],
   },
-  branch: {
+  branch: { 
     type: String,
     required: [true, 'Please add your branch'],
   },
