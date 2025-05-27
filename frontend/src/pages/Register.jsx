@@ -1,107 +1,180 @@
+// pages/Register.jsx
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import './Auth.css';
 
 const Register = () => {
-  const [form, setForm] = useState({ name: '', email: '', password: '',phone:'',batchYear:0,branch:'',location:'',profession:'',bio:'',profilePicture:'' });
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    password: '',
+    phone: '',
+    batchYear: '',
+    branch: '',
+    location: '',
+    profession: '',
+    bio: ''
+  });
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
-    setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleRegister = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setError('');
 
     try {
-      const res = await axios.post('http://localhost:5000/api/auth/register', form);
-
-      localStorage.setItem('token', res.data.token); // Save JWT token
-      navigate('/events'); // Redirect to events
+      const res = await axios.post('http://localhost:5000/api/auth/register', formData);
+      localStorage.setItem('token', res.data.token);
+      navigate('/profile');
     } catch (err) {
-      alert('Registration failed');
+      setError(err.response?.data?.error || 'Registration failed. Please try again.');
       console.error(err);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <form onSubmit={handleRegister}>
-      <h2>Register</h2>
-      <input
-        type="text"
-        name="name"
-        placeholder="Name"
-        value={form.name}
-        onChange={handleChange}
-        required
-      /><br />
-      <input
-        type="email"
-        name="email"
-        placeholder="Email"
-        value={form.email}
-        onChange={handleChange}
-        required
-      /><br />
-      <input
-        type="password"
-        name="password"
-        placeholder="Password"
-        value={form.password}
-        onChange={handleChange}
-        required
-      /><br />
-      <input
-        type="text"
-        name="phone"
-        placeholder="phone"
-        value={form.phone}
-        onChange={handleChange}
-      />
-      <input
-        type="number"
-        name="batchYear"
-        placeholder="Batch year"
-        value={form.batchYear}
-        onChange={handleChange}
-        required
-      />
-      <input
-        type="text"
-        name="branch"
-        placeholder="Branch"
-        value={form.branch}
-        onChange={handleChange}
-        required
-      />
-      <input
-        type="text"
-        name="location"
-        placeholder="location"
-        value={form.location}
-        onChange={handleChange}
-      />
-      
-     
-      
-      <input
-        type="text"
-        name="profession"
-        placeholder="profession"
-        value={form.profession}
-        onChange={handleChange}
-      />
+    <div className="auth-container">
+      <div className="auth-card">
+        <h2>Create an Account</h2>
+        <p className="subtitle">Join our alumni network</p>
+        
+        {error && <div className="alert alert-error">{error}</div>}
 
-      <input
-        type="text"
-        name="bio"
-        placeholder="bio"
-        value={form.bio}
-        onChange={handleChange}
-      />
-      
-      <button type="submit">Register</button>
-    </form>
+        <form onSubmit={handleRegister}>
+          <div className="form-group">
+            <label htmlFor="name">Full Name</label>
+            <input
+              type="text"
+              id="name"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              required
+              placeholder="Enter your full name"
+            />
+          </div>
+          
+          <div className="form-group">
+            <label htmlFor="email">Email</label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              required
+              placeholder="Enter your email"
+            />
+          </div>
+          
+          <div className="form-group">
+            <label htmlFor="password">Password</label>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              required
+              minLength="6"
+              placeholder="Create a password (min 6 characters)"
+            />
+          </div>
+          
+          <div className="form-group">
+            <label htmlFor="phone">Phone (Optional)</label>
+            <input
+              type="text"
+              id="phone"
+              name="phone"
+              value={formData.phone}
+              onChange={handleChange}
+              placeholder="Enter your phone number"
+            />
+          </div>
+          
+          <div className="form-group">
+            <label htmlFor="batchYear">Batch Year</label>
+            <input
+              type="number"
+              id="batchYear"
+              name="batchYear"
+              value={formData.batchYear}
+              onChange={handleChange}
+              required
+              placeholder="Enter your graduation year"
+            />
+          </div>
+          
+          <div className="form-group">
+            <label htmlFor="branch">Branch</label>
+            <input
+              type="text"
+              id="branch"
+              name="branch"
+              value={formData.branch}
+              onChange={handleChange}
+              required
+              placeholder="Enter your branch/degree"
+            />
+          </div>
+          
+          <div className="form-group">
+            <label htmlFor="location">Location (Optional)</label>
+            <input
+              type="text"
+              id="location"
+              name="location"
+              value={formData.location}
+              onChange={handleChange}
+              placeholder="Enter your current location"
+            />
+          </div>
+          
+          <div className="form-group">
+            <label htmlFor="profession">Profession (Optional)</label>
+            <input
+              type="text"
+              id="profession"
+              name="profession"
+              value={formData.profession}
+              onChange={handleChange}
+              placeholder="Enter your profession"
+            />
+          </div>
+          
+          <div className="form-group">
+            <label htmlFor="bio">Bio (Optional)</label>
+            <textarea
+              id="bio"
+              name="bio"
+              value={formData.bio}
+              onChange={handleChange}
+              rows="3"
+              placeholder="Tell us about yourself"
+            />
+          </div>
+          
+          <button type="submit" className="btn btn-primary" disabled={loading}>
+            {loading ? 'Registering...' : 'Register'}
+          </button>
+        </form>
+        
+        <div className="auth-footer">
+          <p>Already have an account? <a href="/login">Login</a></p>
+        </div>
+      </div>
+    </div>
   );
 };
 

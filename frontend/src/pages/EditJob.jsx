@@ -100,7 +100,7 @@ const EditJob = () => {
 
   return (
     <div>
-      <Navbar />
+      
       <div className="edit-job-container">
         <h1>Edit Job Posting</h1>
         

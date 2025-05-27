@@ -92,7 +92,7 @@ const Events = () => {
 
   return (
     <div>
-      <Navbar></Navbar>
+      
     <div className="events-container">
       {isAdmin && (
         <button 

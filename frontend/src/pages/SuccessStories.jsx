@@ -124,7 +124,7 @@ const SuccessStories = () => {
 
   return (
     <div>
-      <Navbar />
+      
       <div className="success-stories-container">
         <div className="stories-header">
           <h1>Alumni Success Stories</h1>

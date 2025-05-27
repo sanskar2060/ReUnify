@@ -80,7 +80,7 @@ const Jobs = () => {
 
   return (
     <div>
-      <Navbar />
+     
       <div className="jobs-container">
         <h1>Job Portal</h1>
         

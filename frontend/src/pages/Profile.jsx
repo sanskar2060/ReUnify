@@ -1,3 +1,4 @@
+// pages/Profile.jsx
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
@@ -14,16 +15,17 @@ const Profile = () => {
     branch: '',
     location: '',
     profession: '',
-    bio: '',
+    bio: ''
   });
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
     newPassword: '',
-    confirmPassword: '',
+    confirmPassword: ''
   });
   const [showPasswordForm, setShowPasswordForm] = useState(false);
-  const [successMessage, setSuccessMessage] = useState('');
-  const [errorMessage, setErrorMessage] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -49,7 +51,7 @@ const Profile = () => {
           branch: res.data.data.branch,
           location: res.data.data.location || '',
           profession: res.data.data.profession || '',
-          bio: res.data.data.bio || '',
+          bio: res.data.data.bio || ''
         });
       } catch (err) {
         console.error(err);
@@ -63,22 +65,26 @@ const Profile = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
 
   const handlePasswordChange = (e) => {
     const { name, value } = e.target;
-    setPasswordData({
-      ...passwordData,
-      [name]: value,
-    });
+    setPasswordData(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setError('');
+    setSuccess('');
+
     const token = localStorage.getItem('token');
     
     try {
@@ -94,21 +100,24 @@ const Profile = () => {
       
       setUser(res.data.data);
       setEditMode(false);
-      setSuccessMessage('Profile updated successfully!');
-      setTimeout(() => setSuccessMessage(''), 3000);
+      setSuccess('Profile updated successfully!');
     } catch (err) {
       console.error(err);
-      setErrorMessage('Failed to update profile');
-      setTimeout(() => setErrorMessage(''), 3000);
+      setError(err.response?.data?.error || 'Failed to update profile');
+    } finally {
+      setLoading(false);
     }
   };
 
   const handlePasswordSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setError('');
+    setSuccess('');
     
     if (passwordData.newPassword !== passwordData.confirmPassword) {
-      setErrorMessage('New passwords do not match');
-      setTimeout(() => setErrorMessage(''), 3000);
+      setError('New passwords do not match');
+      setLoading(false);
       return;
     }
 
@@ -134,26 +143,26 @@ const Profile = () => {
         confirmPassword: '',
       });
       setShowPasswordForm(false);
-      setSuccessMessage('Password updated successfully!');
-      setTimeout(() => setSuccessMessage(''), 3000);
+      setSuccess('Password updated successfully!');
     } catch (err) {
       console.error(err);
-      setErrorMessage(err.response?.data?.error || 'Failed to update password');
-      setTimeout(() => setErrorMessage(''), 3000);
+      setError(err.response?.data?.error || 'Failed to update password');
+    } finally {
+      setLoading(false);
     }
   };
 
   if (!user) {
-    return <div>Loading...</div>;
+    return <div className="loading">Loading profile...</div>;
   }
 
   return (
     <div className="profile-container">
       <div className="profile-header">
         <h2>My Profile</h2>
-        {!editMode && (
+        {!editMode && !showPasswordForm && (
           <button
-            className="edit-btn"
+            className="btn btn-primary"
             onClick={() => setEditMode(true)}
           >
             Edit Profile
@@ -161,10 +170,10 @@ const Profile = () => {
         )}
       </div>
 
-      {successMessage && <div className="alert success">{successMessage}</div>}
-      {errorMessage && <div className="alert error">{errorMessage}</div>}
+      {error && <div className="alert alert-error">{error}</div>}
+      {success && <div className="alert alert-success">{success}</div>}
 
-      {!editMode ? (
+      {!editMode && !showPasswordForm ? (
         <div className="profile-view">
           <div className="profile-picture">
             <img
@@ -182,7 +191,70 @@ const Profile = () => {
             <p><strong>Profession:</strong> {user.profession || 'Not provided'}</p>
             <p><strong>Bio:</strong> {user.bio || 'Not provided'}</p>
           </div>
+          <button
+            className="btn btn-secondary"
+            onClick={() => setShowPasswordForm(true)}
+          >
+            Change Password
+          </button>
         </div>
+      ) : showPasswordForm ? (
+        <form className="password-form" onSubmit={handlePasswordSubmit}>
+          <h3>Change Password</h3>
+          <div className="form-group">
+            <label>Current Password</label>
+            <input
+              type="password"
+              name="currentPassword"
+              value={passwordData.currentPassword}
+              onChange={handlePasswordChange}
+              required
+            />
+          </div>
+          <div className="form-group">
+            <label>New Password</label>
+            <input
+              type="password"
+              name="newPassword"
+              value={passwordData.newPassword}
+              onChange={handlePasswordChange}
+              required
+              minLength="6"
+            />
+          </div>
+          <div className="form-group">
+            <label>Confirm New Password</label>
+            <input
+              type="password"
+              name="confirmPassword"
+              value={passwordData.confirmPassword}
+              onChange={handlePasswordChange}
+              required
+              minLength="6"
+            />
+          </div>
+          <div className="form-actions">
+            <button 
+              type="submit" 
+              className="btn btn-primary"
+              disabled={loading}
+            >
+              {loading ? 'Updating...' : 'Update Password'}
+            </button>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={() => {
+                setShowPasswordForm(false);
+                setError('');
+                setSuccess('');
+              }}
+              disabled={loading}
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
       ) : (
         <form className="profile-form" onSubmit={handleSubmit}>
           <div className="form-group">
@@ -271,12 +343,16 @@ const Profile = () => {
           </div>
           
           <div className="form-actions">
-            <button type="submit" className="save-btn">
-              Save Changes
+            <button 
+              type="submit" 
+              className="btn btn-primary"
+              disabled={loading}
+            >
+              {loading ? 'Saving...' : 'Save Changes'}
             </button>
             <button
               type="button"
-              className="cancel-btn"
+              className="btn btn-secondary"
               onClick={() => {
                 setEditMode(false);
                 setFormData({
@@ -289,64 +365,10 @@ const Profile = () => {
                   profession: user.profession || '',
                   bio: user.bio || '',
                 });
+                setError('');
+                setSuccess('');
               }}
-            >
-              Cancel
-            </button>
-          </div>
-        </form>
-      )}
-
-      {!showPasswordForm ? (
-        <button
-          className="change-password-btn"
-          onClick={() => setShowPasswordForm(true)}
-        >
-          Change Password
-        </button>
-      ) : (
-        <form className="password-form" onSubmit={handlePasswordSubmit}>
-          <h3>Change Password</h3>
-          <div className="form-group">
-            <label>Current Password</label>
-            <input
-              type="password"
-              name="currentPassword"
-              value={passwordData.currentPassword}
-              onChange={handlePasswordChange}
-              required
-            />
-          </div>
-          <div className="form-group">
-            <label>New Password</label>
-            <input
-              type="password"
-              name="newPassword"
-              value={passwordData.newPassword}
-              onChange={handlePasswordChange}
-              required
-              minLength="6"
-            />
-          </div>
-          <div className="form-group">
-            <label>Confirm New Password</label>
-            <input
-              type="password"
-              name="confirmPassword"
-              value={passwordData.confirmPassword}
-              onChange={handlePasswordChange}
-              required
-              minLength="6"
-            />
-          </div>
-          <div className="form-actions">
-            <button type="submit" className="save-btn">
-              Update Password
-            </button>
-            <button
-              type="button"
-              className="cancel-btn"
-              onClick={() => setShowPasswordForm(false)}
+              disabled={loading}
             >
               Cancel
             </button>
